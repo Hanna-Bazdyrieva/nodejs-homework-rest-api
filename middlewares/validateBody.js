@@ -1,18 +1,25 @@
 const { HttpError } = require("../helpers");
 
+function validateBody(schema) {
+	function func(req, res, next) {
 
-function validateBody (schema){
+		if (Object.keys(req.body).length === 0) {
 
-  function func (req, res, next){
-    const { error } = schema.validate(req.body);
+			const message = "missing fields";
+			throw HttpError(400, message);
+		} else {
+			const { error } = schema.validate(req.body);
 
-		if (error) {
-      console.log(error.details )
-			throw HttpError(400, error.message);
+			if (error) {
+
+				const message = `missing required ${error.details[0].context.label} field`;
+				throw HttpError(400, message);
+			}
 		}
-    next()
-  }
-  return func
+
+		next();
+	}
+	return func;
 }
 
-module.exports = validateBody
+module.exports = validateBody;
