@@ -26,13 +26,12 @@ async function register(req, res) {
 
 async function login(req, res) {
 	const { email, password } = req.body;
-
 	const user = await User.findOne({ email });
 
 	if (!user) {
 		throw HttpError(401, "Email or password is wrong");
 	}
-	const passwordCompare = bcrypt.compare(password, user.password);
+	const passwordCompare = await bcrypt.compare(password, user.password);
 
 	if (!passwordCompare) {
 		throw HttpError(401, "Email or password is wrong");
