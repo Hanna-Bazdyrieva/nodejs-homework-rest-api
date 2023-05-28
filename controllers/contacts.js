@@ -2,13 +2,36 @@ const { Contact } = require("../models/contact");
 const { HttpError, ctrlWrapper } = require("../helpers");
 
 async function listContacts(req, res) {
-	const list = await Contact.find();
-	res.json(list);
+	const { _id: owner } = req.user;
+	const { page = 1, limit = 10, favorite } = req.query;
+	const skip = (page - 1) * limit;
+
+	if (favorite) {
+		const list =
+			favorite === true
+				? await Contact.find(
+						{ owner, favorite: true },
+						"-createdAt -updatedAt",
+						{ skip, limit }
+				  )
+				: await Contact.find(
+						{ owner, favorite: false },
+						"-createdAt -updatedAt",
+						{ skip, limit }
+				  );
+		res.json(list);
+	} else {
+		const list = await Contact.find({ owner }, "-createdAt -updatedAt", {
+			skip,
+			limit,
+		});
+		res.json(list);
+	}
 }
 
 async function getContactById(req, res) {
 	const { id } = req.params;
-	const contactById = await Contact.findById( id);
+	const contactById = await Contact.findById(id);
 
 	if (!contactById) {
 		throw HttpError(404, "Not found");
@@ -17,7 +40,8 @@ async function getContactById(req, res) {
 }
 
 async function addContact(req, res) {
-	const newContact = await Contact.create(req.body);
+	const { _id: owner } = req.user;
+	const newContact = await Contact.create({ ...req.body, owner });
 	return res.status(201).json(newContact);
 }
 
@@ -34,7 +58,9 @@ async function removeContact(req, res) {
 async function updateContactById(req, res) {
 	const { id } = req.params;
 
-	const updatedContact = await Contact.findByIdAndUpdate(id, req.body, {new: true});
+	const updatedContact = await Contact.findByIdAndUpdate(id, req.body, {
+		new: true,
+	});
 
 	if (!updatedContact) {
 		throw HttpError(404, "Not found");
@@ -44,9 +70,11 @@ async function updateContactById(req, res) {
 
 async function updateStatusContact(req, res) {
 	const { id } = req.params;
-	console.log(id)
+	console.log(id);
 
-	const updatedContact = await Contact.findByIdAndUpdate(id, req.body, {new: true});
+	const updatedContact = await Contact.findByIdAndUpdate(id, req.body, {
+		new: true,
+	});
 
 	if (!updatedContact) {
 		throw HttpError(404, "Not found");
