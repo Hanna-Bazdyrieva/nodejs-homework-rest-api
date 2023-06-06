@@ -10,6 +10,10 @@ router.post('/register', validateBody(schemas.authSchema), ctrl.register)
 
 router.post('/login', validateBody(schemas.authSchema), ctrl.login)
 
+router.get('/verify/:verificationToken', ctrl.verifyEmail)
+
+router.post('/verify', validateBody(schemas.emailSchema), ctrl.resendVerifyEmail)
+
 router.get( '/current', authenticate, ctrl.getCurrent )
 
 router.post( '/logout', authenticate, ctrl.logout)
